@@ -658,7 +658,7 @@
 
 <nav>
   <div class="logo">Interview<span>AI</span></div>
-  <div class="nav-badge">Powered by Claude AI</div>
+  <div class="nav-badge">Powered by Gemini</div>
 </nav>
 
 <!-- ══ API KEY MODAL ══ -->
@@ -666,14 +666,14 @@
   <div class="modal-box">
     <div class="modal-title">🔑 Enter Your API Key</div>
     <div class="modal-text">
-      This app uses Claude AI to generate questions and feedback. Paste your Anthropic API key below to get started.
+      This app uses Google Gemini to generate questions and feedback. Paste your free Gemini API key below to get started.
     </div>
     <div class="modal-error" id="modalError"></div>
-    <input type="password" class="modal-input" id="apiKeyInput" placeholder="sk-ant-..."/>
+    <input type="password" class="modal-input" id="apiKeyInput" placeholder="Paste your Gemini API key"/>
     <div class="modal-note">
-      Don't have a key? Get a free one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key.
+      Don't have a key? Get a free one at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → Create API Key. No credit card needed.
       <br/><br/>
-      Your key is stored only in your browser for this session — it's never sent anywhere except directly to Anthropic.
+      Your key is stored only in your browser for this session — it's never sent anywhere except directly to Google.
     </div>
     <button class="modal-btn" onclick="saveApiKey()">Save & Continue</button>
   </div>
@@ -795,7 +795,7 @@
 <script>
   // Key is entered by the user at runtime — never hardcoded, never pushed to GitHub
   let API_KEY = "";
-  const API_URL = "https://api.anthropic.com/v1/messages";
+  const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
   let selectedRole = "";
   let selectedDiff = "medium";
@@ -807,7 +807,7 @@
 
   // ── API Key Modal Logic ──
   window.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('claude_api_key');
+    const saved = sessionStorage.getItem('gemini_api_key');
     if (saved) {
       API_KEY = saved;
       document.getElementById('keyModal').style.display = 'none';
@@ -823,13 +823,13 @@
     const errorEl = document.getElementById('modalError');
 
     if (!input) { errorEl.textContent = 'Please enter your API key.'; return; }
-    if (!input.startsWith('sk-ant-')) {
-      errorEl.textContent = 'That doesn\'t look like a valid Anthropic key (should start with sk-ant-).';
+    if (input.length < 10) {
+      errorEl.textContent = 'That key looks too short — please check and paste it again.';
       return;
     }
 
     API_KEY = input;
-    sessionStorage.setItem('claude_api_key', input);
+    sessionStorage.setItem('gemini_api_key', input);
     document.getElementById('keyModal').style.display = 'none';
     document.getElementById('keyStatus').style.display = 'block';
   }
@@ -871,7 +871,7 @@
     await loadQuestion();
   }
 
-  // ── Load Question from Claude ──
+  // ── Load Question from Gemini ──
   async function loadQuestion() {
     updateProgress();
     document.getElementById('answerSection').style.display = 'none';
@@ -884,20 +884,15 @@
     const previousQs = questions.map((q,i) => `Q${i+1}: ${q}`).join('\n');
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}?key=${API_KEY}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `You are a senior interviewer conducting a ${selectedDiff} difficulty job interview for a ${selectedRole} position.
+          contents: [{
+            parts: [{
+              text: `You are a senior interviewer conducting a ${selectedDiff} difficulty job interview for a ${selectedRole} position.
 
 Generate question number ${currentQ + 1} of ${TOTAL_Q} for this interview.
 
@@ -910,6 +905,7 @@ Rules:
 - For medium: practical scenarios, problem-solving
 - For hard: system design, deep technical, edge cases
 - Return ONLY the question text, nothing else, no numbering, no preamble`
+            }]
           }]
         })
       });
@@ -917,14 +913,14 @@ Rules:
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 401) {
-          sessionStorage.removeItem('claude_api_key');
+        if (res.status === 400 || res.status === 403) {
+          sessionStorage.removeItem('gemini_api_key');
           throw new Error('Invalid API key. Please re-enter it.');
         }
         throw new Error(data.error?.message || `API error (${res.status})`);
       }
 
-      const question = data.content[0].text.trim();
+      const question = data.candidates[0].content.parts[0].text.trim();
       questions.push(question);
 
       document.getElementById('aiQuestion').textContent = question;
@@ -952,20 +948,15 @@ Rules:
     feedbackCard.classList.add('visible');
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}?key=${API_KEY}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `You are a senior ${selectedRole} interviewer evaluating a candidate's answer.
+          contents: [{
+            parts: [{
+              text: `You are a senior ${selectedRole} interviewer evaluating a candidate's answer.
 
 Question: "${questions[currentQ]}"
 Candidate's Answer: "${answer}"
@@ -977,6 +968,7 @@ Evaluate the answer and respond in this EXACT JSON format (no markdown, no extra
   "label": "<Excellent|Good|Average|Needs Work|Poor>",
   "feedback": "<2-3 sentences: what was good, what was missing, one specific tip to improve>"
 }`
+            }]
           }]
         })
       });
@@ -984,11 +976,11 @@ Evaluate the answer and respond in this EXACT JSON format (no markdown, no extra
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 401) sessionStorage.removeItem('claude_api_key');
+        if (res.status === 400 || res.status === 403) sessionStorage.removeItem('gemini_api_key');
         throw new Error(data.error?.message || `API error (${res.status})`);
       }
 
-      let raw = data.content[0].text.trim();
+      let raw = data.candidates[0].content.parts[0].text.trim();
       raw = raw.replace(/```json|```/g, '').trim();
       const result = JSON.parse(raw);
 
