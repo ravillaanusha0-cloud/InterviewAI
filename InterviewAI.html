@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InterviewAI — Your Personal Interview Coach</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #12121a;
+      --card:     #1a1a26;
+      --border:   #2a2a3d;
+      --accent:   #7c6dfa;
+      --accent2:  #a78bfa;
+      --green:    #34d399;
+      --red:      #f87171;
+      --yellow:   #fbbf24;
+      --text:     #f0f0ff;
+      --muted:    #6b6b8a;
+      --soft:     #c4c4e0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--accent2);
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--text); }
+
+    .nav-badge {
+      font-size: 0.72rem;
+      background: var(--accent);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; flex: 1; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ── HOME ── */
+    #homeScreen {
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      margin-bottom: 18px;
+      max-width: 680px;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      color: var(--soft);
+      font-size: 1.05rem;
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    /* Role selector */
+    .role-section {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+
+    .role-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .role-btn {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--soft);
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .role-btn:hover { border-color: var(--accent); color: var(--text); }
+    .role-btn.selected {
+      border-color: var(--accent);
+      background: rgba(124,109,250,0.12);
+      color: var(--text);
+    }
+
+    .role-icon { font-size: 1.3rem; }
+
+    /* Difficulty */
+    .diff-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+
+    .diff-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .diff-btn:hover { color: var(--text); }
+    .diff-btn.selected.easy   { border-color: var(--green);  color: var(--green);  background: rgba(52,211,153,0.08); }
+    .diff-btn.selected.medium { border-color: var(--yellow); color: var(--yellow); background: rgba(251,191,36,0.08); }
+    .diff-btn.selected.hard   { border-color: var(--red);    color: var(--red);    background: rgba(248,113,113,0.08); }
+
+    .start-btn {
+      padding: 16px 48px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .start-btn:hover   { opacity: 0.9; }
+    .start-btn:active  { transform: scale(0.97); }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── INTERVIEW SCREEN ── */
+    #interviewScreen { padding: 0; }
+
+    .interview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .interview-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .q-counter {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .q-counter span { color: var(--accent2); font-weight: 700; }
+
+    .progress-bar {
+      width: 140px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .end-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .end-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .interview-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 24px;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      gap: 24px;
+    }
+
+    /* AI question bubble */
+    .ai-bubble {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px 18px 18px 4px;
+      padding: 22px 26px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .ai-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .ai-question {
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .typing span {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30%            { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* Answer area */
+    .answer-section { display: flex; flex-direction: column; gap: 12px; }
+
+    .answer-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.97rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border 0.2s;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .answer-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .skip-btn {
+      padding: 11px 22px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .skip-btn:hover { color: var(--text); border-color: var(--soft); }
+
+    .submit-btn {
+      padding: 11px 28px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .submit-btn:hover    { opacity: 0.88; }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Feedback card */
+    .feedback-card {
+      border-radius: 14px;
+      padding: 20px 22px;
+      border: 1px solid var(--border);
+      animation: fadeIn 0.4s ease;
+      display: none;
+    }
+    .feedback-card.visible { display: block; }
+
+    .feedback-card.good   { border-color: rgba(52,211,153,0.4);  background: rgba(52,211,153,0.06); }
+    .feedback-card.okay   { border-color: rgba(251,191,36,0.4);  background: rgba(251,191,36,0.06); }
+    .feedback-card.poor   { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.06); }
+
+    .feedback-score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .score-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+
+    .score-label { font-size: 0.8rem; color: var(--muted); }
+
+    .feedback-text {
+      font-size: 0.93rem;
+      line-height: 1.7;
+      color: var(--soft);
+    }
+
+    .feedback-text strong { color: var(--text); }
+
+    .next-btn {
+      margin-top: 16px;
+      padding: 11px 24px;
+      border-radius: 10px;
+      border: none;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .next-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+    /* ── RESULTS SCREEN ── */
+    #resultsScreen {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 24px;
+    }
+
+    .results-wrap {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .results-header { text-align: center; }
+
+    .results-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .results-sub { color: var(--muted); font-size: 0.92rem; }
+
+    .overall-score {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .big-score {
+      font-family: 'Syne', sans-serif;
+      font-size: 5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .score-out { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+    .verdict {
+      font-size: 1rem;
+      color: var(--soft);
+      line-height: 1.6;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── API KEY MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,5,10,0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .modal-text {
+      font-size: 0.88rem;
+      color: var(--soft);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .modal-text a { color: var(--accent2); }
+
+    .modal-input {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border 0.2s;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+
+    .modal-note {
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .modal-btn:hover { opacity: 0.88; }
+
+    .modal-error {
+      color: var(--red);
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+      min-height: 18px;
+    }
+
+    .key-status {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.76rem;
+      color: var(--muted);
+      cursor: pointer;
+      z-index: 50;
+    }
+    .key-status:hover { border-color: var(--accent); color: var(--soft); }
+
+
+    .breakdown-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--soft);
+      margin-bottom: 4px;
+    }
+
+    .breakdown-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .b-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .b-q { font-size: 0.88rem; color: var(--soft); flex: 1; margin-right: 12px; }
+    .b-score {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .b-feedback { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+    .restart-btn {
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      width: 100%;
+    }
+    .restart-btn:hover { opacity: 0.88; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 500px) {
+      nav { padding: 16px 20px; }
+      .role-grid { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 2rem; }
+      .interview-body { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Interview<span>AI</span></div>
+  <div class="nav-badge">Powered by Claude AI</div>
+</nav>
+
+<!-- ══ API KEY MODAL ══ -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Enter Your API Key</div>
+    <div class="modal-text">
+      This app uses Claude AI to generate questions and feedback. Paste your Anthropic API key below to get started.
+    </div>
+    <div class="modal-error" id="modalError"></div>
+    <input type="password" class="modal-input" id="apiKeyInput" placeholder="sk-ant-..."/>
+    <div class="modal-note">
+      Don't have a key? Get a free one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key.
+      <br/><br/>
+      Your key is stored only in your browser for this session — it's never sent anywhere except directly to Anthropic.
+    </div>
+    <button class="modal-btn" onclick="saveApiKey()">Save & Continue</button>
+  </div>
+</div>
+
+<div class="key-status" id="keyStatus" style="display:none" onclick="changeKey()">🔑 Change API Key</div>
+
+
+<!-- ══ HOME SCREEN ══ -->
+<div class="screen active" id="homeScreen">
+  <div class="hero-tag">🎯 AI-Powered Interview Practice</div>
+  <h1>Ace your next<br/><em>tech interview</em></h1>
+  <p class="hero-sub">Practice with real interview questions, get instant AI feedback on your answers, and track your improvement.</p>
+
+  <div class="role-section">
+    <div class="role-label">Choose your target role</div>
+    <div class="role-grid">
+      <button class="role-btn" onclick="selectRole(this, 'Python Developer')">
+        <span class="role-icon">🐍</span> Python Developer
+      </button>
+      <button class="role-btn" onclick="selectRole(this, 'Full Stack Developer')">
+        <span class="role-icon">🌐</span> Full Stack Dev
+      </button>
+      <button class="role-btn" onclick="selectRole(this, 'Data Analyst')">
+        <span class="role-icon">📊</span> Data Analyst
+      </button>
+      <button class="role-btn" onclick="selectRole(this, 'Frontend Developer')">
+        <span class="role-icon">🎨</span> Frontend Dev
+      </button>
+      <button class="role-btn" onclick="selectRole(this, 'Backend Developer')">
+        <span class="role-icon">⚙️</span> Backend Dev
+      </button>
+      <button class="role-btn" onclick="selectRole(this, 'Software Engineer Trainee')">
+        <span class="role-icon">🎓</span> Trainee / Fresher
+      </button>
+    </div>
+  </div>
+
+  <div class="role-section">
+    <div class="role-label">Difficulty level</div>
+    <div class="diff-row">
+      <button class="diff-btn easy" onclick="selectDiff(this, 'easy')">🟢 Easy</button>
+      <button class="diff-btn medium selected medium" onclick="selectDiff(this, 'medium')">🟡 Medium</button>
+      <button class="diff-btn hard" onclick="selectDiff(this, 'hard')">🔴 Hard</button>
+    </div>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startInterview()" disabled>
+    Start Interview →
+  </button>
+</div>
+
+<!-- ══ INTERVIEW SCREEN ══ -->
+<div class="screen" id="interviewScreen">
+  <div class="interview-header">
+    <div class="interview-meta">
+      <div class="q-counter">Question <span id="qNum">1</span> of <span id="qTotal">5</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:20%"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:0.8rem;color:var(--muted)" id="roleTag"></div>
+      <button class="end-btn" onclick="endEarly()">End Session</button>
+    </div>
+  </div>
+
+  <div class="interview-body">
+    <div class="ai-bubble" id="aiBubble">
+      <div class="ai-label">InterviewAI</div>
+      <div class="ai-question" id="aiQuestion">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <div class="answer-section" id="answerSection" style="display:none">
+      <div class="answer-label">Your Answer</div>
+      <textarea id="answerInput" placeholder="Type your answer here... Take your time, think it through."></textarea>
+      <div class="answer-actions">
+        <button class="skip-btn" onclick="skipQuestion()">Skip</button>
+        <button class="submit-btn" id="submitBtn" onclick="submitAnswer()">Submit Answer</button>
+      </div>
+    </div>
+
+    <div class="feedback-card" id="feedbackCard">
+      <div class="feedback-score">
+        <div class="score-badge" id="feedbackScore"></div>
+        <div class="score-label">/ 10 — <span id="feedbackLabel"></span></div>
+      </div>
+      <div class="feedback-text" id="feedbackText"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULTS SCREEN ══ -->
+<div class="screen" id="resultsScreen">
+  <div class="results-wrap">
+    <div class="results-header">
+      <div class="results-title" id="resultsTitle">Interview Complete!</div>
+      <div class="results-sub" id="resultsSub"></div>
+    </div>
+
+    <div class="overall-score">
+      <div class="big-score" id="bigScore"></div>
+      <div class="score-out">Overall Score / 10</div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-title">Question Breakdown</div>
+      <div id="breakdownList"></div>
+    </div>
+
+    <button class="restart-btn" onclick="restart()">Start New Interview →</button>
+  </div>
+</div>
+
+<script>
+  // Key is entered by the user at runtime — never hardcoded, never pushed to GitHub
+  let API_KEY = "";
+  const API_URL = "https://api.anthropic.com/v1/messages";
+
+  let selectedRole = "";
+  let selectedDiff = "medium";
+  let questions    = [];
+  let currentQ     = 0;
+  let scores       = [];
+  let feedbacks    = [];
+  const TOTAL_Q    = 5;
+
+  // ── API Key Modal Logic ──
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('claude_api_key');
+    if (saved) {
+      API_KEY = saved;
+      document.getElementById('keyModal').style.display = 'none';
+      document.getElementById('keyStatus').style.display = 'block';
+    }
+    document.getElementById('apiKeyInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveApiKey();
+    });
+  });
+
+  function saveApiKey() {
+    const input = document.getElementById('apiKeyInput').value.trim();
+    const errorEl = document.getElementById('modalError');
+
+    if (!input) { errorEl.textContent = 'Please enter your API key.'; return; }
+    if (!input.startsWith('sk-ant-')) {
+      errorEl.textContent = 'That doesn\'t look like a valid Anthropic key (should start with sk-ant-).';
+      return;
+    }
+
+    API_KEY = input;
+    sessionStorage.setItem('claude_api_key', input);
+    document.getElementById('keyModal').style.display = 'none';
+    document.getElementById('keyStatus').style.display = 'block';
+  }
+
+  function changeKey() {
+    document.getElementById('keyModal').style.display = 'flex';
+    document.getElementById('apiKeyInput').value = API_KEY;
+    document.getElementById('modalError').textContent = '';
+  }
+
+  // ── Role & Difficulty Selection ──
+  function selectRole(btn, role) {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedRole = role;
+    checkReady();
+  }
+
+  function selectDiff(btn, diff) {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected', diff);
+    selectedDiff = diff;
+  }
+
+  function checkReady() {
+    document.getElementById('startBtn').disabled = !selectedRole;
+  }
+
+  // ── Start Interview ──
+  async function startInterview() {
+    if (!API_KEY) {
+      document.getElementById('keyModal').style.display = 'flex';
+      return;
+    }
+    showScreen('interviewScreen');
+    document.getElementById('roleTag').textContent = `${selectedRole} · ${selectedDiff}`;
+    document.getElementById('qTotal').textContent = TOTAL_Q;
+    questions = []; currentQ = 0; scores = []; feedbacks = [];
+    await loadQuestion();
+  }
+
+  // ── Load Question from Claude ──
+  async function loadQuestion() {
+    updateProgress();
+    document.getElementById('answerSection').style.display = 'none';
+    document.getElementById('feedbackCard').classList.remove('visible');
+    document.getElementById('answerInput').value = '';
+
+    document.getElementById('aiQuestion').innerHTML =
+      '<div class="typing"><span></span><span></span><span></span></div>';
+
+    const previousQs = questions.map((q,i) => `Q${i+1}: ${q}`).join('\n');
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: `You are a senior interviewer conducting a ${selectedDiff} difficulty job interview for a ${selectedRole} position.
+
+Generate question number ${currentQ + 1} of ${TOTAL_Q} for this interview.
+
+${previousQs ? `Previous questions asked (do NOT repeat these):\n${previousQs}` : ''}
+
+Rules:
+- Ask ONE clear, specific interview question
+- Match the ${selectedDiff} difficulty level
+- For easy: basics, definitions, simple concepts
+- For medium: practical scenarios, problem-solving
+- For hard: system design, deep technical, edge cases
+- Return ONLY the question text, nothing else, no numbering, no preamble`
+          }]
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          sessionStorage.removeItem('claude_api_key');
+          throw new Error('Invalid API key. Please re-enter it.');
+        }
+        throw new Error(data.error?.message || `API error (${res.status})`);
+      }
+
+      const question = data.content[0].text.trim();
+      questions.push(question);
+
+      document.getElementById('aiQuestion').textContent = question;
+      document.getElementById('answerSection').style.display = 'flex';
+      document.getElementById('answerInput').focus();
+
+    } catch (err) {
+      document.getElementById('aiQuestion').textContent =
+        'Error: ' + err.message;
+    }
+  }
+
+  // ── Submit Answer ──
+  async function submitAnswer() {
+    const answer = document.getElementById('answerInput').value.trim();
+    if (!answer) return;
+
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('skipBtn');
+
+    const feedbackCard = document.getElementById('feedbackCard');
+    feedbackCard.className = 'feedback-card';
+    document.getElementById('feedbackText').innerHTML =
+      '<div class="typing"><span></span><span></span><span></span></div>';
+    feedbackCard.classList.add('visible');
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: `You are a senior ${selectedRole} interviewer evaluating a candidate's answer.
+
+Question: "${questions[currentQ]}"
+Candidate's Answer: "${answer}"
+Difficulty: ${selectedDiff}
+
+Evaluate the answer and respond in this EXACT JSON format (no markdown, no extra text):
+{
+  "score": <number 1-10>,
+  "label": "<Excellent|Good|Average|Needs Work|Poor>",
+  "feedback": "<2-3 sentences: what was good, what was missing, one specific tip to improve>"
+}`
+          }]
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) sessionStorage.removeItem('claude_api_key');
+        throw new Error(data.error?.message || `API error (${res.status})`);
+      }
+
+      let raw = data.content[0].text.trim();
+      raw = raw.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(raw);
+
+      scores.push(result.score);
+      feedbacks.push({ q: questions[currentQ], score: result.score, feedback: result.feedback });
+
+      const score = result.score;
+      const cls   = score >= 7 ? 'good' : score >= 4 ? 'okay' : 'poor';
+      const color = score >= 7 ? 'var(--green)' : score >= 4 ? 'var(--yellow)' : 'var(--red)';
+
+      feedbackCard.classList.add(cls);
+      document.getElementById('feedbackScore').textContent = score;
+      document.getElementById('feedbackScore').style.color = color;
+      document.getElementById('feedbackLabel').textContent = result.label;
+      document.getElementById('feedbackText').innerHTML = result.feedback
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      const isLast = currentQ >= TOTAL_Q - 1;
+      document.getElementById('nextBtn').textContent = isLast ? 'See Results →' : 'Next Question →';
+
+    } catch (err) {
+      scores.push(0);
+      feedbacks.push({ q: questions[currentQ], score: 0, feedback: 'Could not evaluate answer.' });
+      feedbackCard.classList.add('poor');
+      document.getElementById('feedbackScore').textContent = '!';
+      document.getElementById('feedbackLabel').textContent = 'Error';
+      document.getElementById('feedbackText').textContent = 'Error: ' + err.message;
+      document.getElementById('nextBtn').textContent = currentQ >= TOTAL_Q - 1 ? 'See Results →' : 'Next Question →';
+    }
+
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  // ── Skip Question ──
+  function skipQuestion() {
+    scores.push(0);
+    feedbacks.push({ q: questions[currentQ], score: 0, feedback: 'Question skipped.' });
+    nextQuestion();
+  }
+
+  // ── Next Question ──
+  function nextQuestion() {
+    currentQ++;
+    if (currentQ >= TOTAL_Q) { showResults(); return; }
+    loadQuestion();
+  }
+
+  // ── End Early ──
+  function endEarly() {
+    if (scores.length === 0) { restart(); return; }
+    showResults();
+  }
+
+  // ── Show Results ──
+  function showResults() {
+    showScreen('resultsScreen');
+    const avg = scores.length > 0
+      ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1)
+      : 0;
+
+    document.getElementById('bigScore').textContent = avg;
+    document.getElementById('resultsSub').textContent =
+      `${selectedRole} · ${selectedDiff} difficulty · ${scores.length} question${scores.length !== 1 ? 's' : ''} answered`;
+
+    let verdict = '';
+    if (avg >= 8)      verdict = "Outstanding performance! You're well-prepared for this role. Keep polishing your communication and you'll ace real interviews.";
+    else if (avg >= 6) verdict = "Good effort! You have solid fundamentals. Focus on adding more depth and specific examples to your answers.";
+    else if (avg >= 4) verdict = "You're on the right track. Review core concepts for this role and practice structuring answers more clearly.";
+    else               verdict = "Keep practicing! Study the fundamentals and try the Easy difficulty first to build confidence.";
+
+    document.getElementById('verdict').textContent = verdict;
+
+    const list = document.getElementById('breakdownList');
+    list.innerHTML = '';
+    feedbacks.forEach((f, i) => {
+      const color = f.score >= 7 ? 'var(--green)' : f.score >= 4 ? 'var(--yellow)' : 'var(--red)';
+      list.innerHTML += `
+        <div class="breakdown-item">
+          <div class="b-row">
+            <div class="b-q">Q${i+1}: ${f.q.length > 80 ? f.q.slice(0,80)+'…' : f.q}</div>
+            <div class="b-score" style="color:${color}">${f.score}/10</div>
+          </div>
+          <div class="b-feedback">${f.feedback}</div>
+        </div>`;
+    });
+  }
+
+  // ── Helpers ──
+  function updateProgress() {
+    document.getElementById('qNum').textContent = currentQ + 1;
+    document.getElementById('progressFill').style.width =
+      `${((currentQ + 1) / TOTAL_Q) * 100}%`;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function restart() {
+    selectedRole = '';
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('startBtn').disabled = true;
+    showScreen('homeScreen');
+  }
+</script>
+</body>
+</html>
